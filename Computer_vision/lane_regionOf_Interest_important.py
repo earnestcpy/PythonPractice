@@ -32,7 +32,8 @@ def regionOfInterest(image):
     # triangle = Array of polygons where each polygon is represented as an array of points.
     # colorPicker = 255
     cv2.fillPoly(mask, triangle, 255) 
-    return mask
+    mask_image = cv2.bitwise_and(image, mask)
+    return mask_image
     
 #read image by calling cv2.imread()
 load_image = cv2.imread("./Image/Image/test_image.jpg")
