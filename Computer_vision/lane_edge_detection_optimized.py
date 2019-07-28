@@ -2,11 +2,55 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+def make_coordinates(image, line_coordinates):
+    slope, intercept = line_coordinates
+    y1 = image.shape[0]  #y-intercept
+
+    # y = mx + b
+    # y2 = line goes three fifth of the way. See lane_edge_detection_optimized_explanation.png
+    y2 = int(y1 * (3/5))
+
+    x1 = int((y1- intercept)/slope)
+    
+    x2 = int((y2- intercept)/slope)
+
+    return np.array([x1,y1,x2,y2])
+
+def average_slope(image, lines):
+    left_lines = []
+    right_lines = []
+
+    for line in lines:
+        x1, y1, x2, y2 = line.reshape(4)
+        
+        #polyfit funtion to find the slope and y intercept for each line in a form of [slope, y-intercept]
+        #polyfit(x cooridinates, y cooridninates, degree)   x.shape must be equal to y.shape and degree = 1 indicates to be linear function
+        parameters = np.polyfit((x1,x2), (y1,y2),1)
+        slope = parameters[0]
+        intercept = parameters[1]
+        print(parameters)
+
+        if slope < 0: 
+            left_lines.append((slope, intercept))
+        else:
+            right_lines.append((slope, intercept))
+    #np.average to return the average slope and intercept for left lanes and right lanes respectively.
+    left_average_slope_intercept = np.average(left_lines, axis=0)
+    right_average_slope_intercept = np.average(right_lines, axis=0)
+    print(left_average_slope_intercept, " : Average slope and intercept for left lane")
+    print(right_average_slope_intercept, " : Average slope and intercept for right lane and intercept")
+
+    left_line = make_coordinates(image, left_average_slope_intercept)
+    right_line = make_coordinates(image, right_average_slope_intercept)
+
+    return np.array([left_line, right_line])
+
+
 
 def cannyFunction(image):
     g_image = cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
     
-    #ksize (5,5) could be any odd number. Even number will not be accepted. The higher ksize parameters, The moreblurrer the image it is  
+    #ksize (5,5) could be any odd number. Even number will not be accepted. The higher ksize parameters, The more blurrer the image it is  
     blur_image = cv2.GaussianBlur(g_image, (5, 5), 0)
     
     canny_image = cv2.Canny(blur_image, 50, 150)
@@ -75,9 +119,10 @@ cropped_image = regionOfInterest(canny_image)
 #e.g  --- --  to be -----      
 edge = cv2.HoughLinesP(cropped_image, 2, np.pi/180, 100, np.array([]), minLineLength=40, maxLineGap=5)
 
+average_lines = average_slope(copy_image, edge)
 
 #display_lines function draws lines on a black image which is image variable in a form of 3-D array
-lines_image = display_lines(copy_image, edge)
+lines_image = display_lines(copy_image, average_lines)
 
 
 
