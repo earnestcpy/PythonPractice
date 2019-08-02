@@ -145,7 +145,7 @@ def display_lines(image, lines):
 # #cv2.imshow("result", cropped_image)
 # cv2.waitKey(0)
 
-cap = cv2.VideoCapture("test2.mp4")
+cap = cv2.VideoCapture("test2.avi")
 
 if(cap.isOpened() == False):
     print("error opening file")
@@ -166,6 +166,7 @@ while cap.isOpened():
     combined_image = cv2.addWeighted(frame, 0.8, lines_image, 1, 1)
 
     cv2.imshow("result", combined_image)
-    if cv2.waitKey(1) & 0xFF== ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
+cap.release()
+cv2.destroyAllWindows()
